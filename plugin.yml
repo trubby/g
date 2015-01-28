@@ -1,0 +1,10 @@
+name: GTA
+version: 1.0
+description: nothing
+main: Trubby.co.th.GTA
+author: Tub
+depend: [Vault, Essentials, GroupManager]
+commands:
+  g:
+  gta:
+  wanted:
