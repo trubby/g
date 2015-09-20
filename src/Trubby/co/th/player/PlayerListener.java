@@ -1,7 +1,6 @@
 package Trubby.co.th.player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -13,7 +12,6 @@ import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -49,8 +47,22 @@ public class PlayerListener implements Listener{
 			Player killer = death.getKiller();
 			
 			GTAPlayer p = GTA.getPlayerManager().getGTAplayer(killer.getName());
-			p.setKill(p.getKill() + 1);
-			GTA.getPlayerManager().addWanted(killer, 1.0f);
+			
+			//PREVENT KILL GRINDING
+			if(p.kill_cache.containsKey(death.getName())){
+				Long lastkill = p.kill_cache.get(death.getName());
+				if(System.currentTimeMillis() - lastkill < 20*1000){
+					killer.sendMessage(ChatColor.RED + "YOU JUST KILL " + ChatColor.WHITE + death.getName() + ChatColor.RED + " IN LAST 5 MINUET.");
+					killer.sendMessage(ChatColor.RED + "SO YOUR KILL WILL NOT COUNT IN KILL COUNTER.");
+				}else{
+					p.setKill(p.getKill() + 1);
+					GTA.getPlayerManager().addWanted(killer, 1.0f);
+				}
+			}else{
+				p.setKill(p.getKill() + 1);
+				GTA.getPlayerManager().addWanted(killer, 1.0f);
+			}
+			
 			
 			//killer.sendMessage(ChatColor.RED + "You killed " + ChatColor.YELLOW + death.getName() + "." + ChatColor.RED + " You will be chase by cops.");
 			
@@ -143,53 +155,6 @@ public class PlayerListener implements Listener{
 		}, 5L);
 	}
 	
-	HashMap<String, Integer> melee_log = new HashMap<>();
-	//ANTI CHEAT!!!!!!!!!!
-	@EventHandler
-	public void onPlayerMelee(EntityDamageByEntityEvent e){
-		if(e.getDamager() instanceof Player){
-			final Player p = (Player) e.getDamager();
-			if(p.getItemInHand().getType() == Material.YELLOW_FLOWER ||
-					p.getItemInHand().getType() == Material.STICK ||
-					p.getItemInHand().getType() == Material.AIR ||
-					p.getItemInHand().getType() == Material.BONE){
-				
-				//Car
-				if(p.isInsideVehicle()){
-					p.sendMessage(ChatColor.DARK_RED + "Melee Attack in a car is not allowed.");
-					e.setCancelled(true);
-					return;
-				}
-				
-				if(melee_log.containsKey(p.getName())){
-					int i = melee_log.get(p.getName());
-					System.out.println(i);
-					if(i > 2){
-						p.kickPlayer(ChatColor.RED + "[" + ChatColor.WHITE + "GTAAntiCheat" + ChatColor.RED + "]" + ChatColor.WHITE + " Melee attack too fast!");
-						for(Player admin : Bukkit.getOnlinePlayers()){
-							if(admin.isOp()){
-								admin.sendMessage("[GTA Anticheat] " + p.getName() + " kick : attack too fast.");
-							}
-						}
-					}
-					e.setCancelled(true);
-					melee_log.put(p.getName(), i+1);
-				}else{
-						melee_log.put(p.getName(), 1);
-						Bukkit.getScheduler().scheduleSyncDelayedTask(GTA.instance, new Runnable() {
-							
-							@Override
-							public void run() {
-								melee_log.remove(p.getName());
-							}
-						}, 7L);
-				}
-			}else{
-				e.setCancelled(true);
-			}
-		}
-	}
-	
 	ArrayList<UUID> com_cool = new ArrayList<>();
 	
 	@EventHandler
@@ -257,12 +222,14 @@ public class PlayerListener implements Listener{
 	
 	@EventHandler
 	public void PlayerJoinMessage(PlayerJoinEvent e){
+		//e.setJoinMessage(null);
 		e.setJoinMessage(ChatColor.GRAY + "[" + ChatColor.DARK_GRAY + "+" + ChatColor.GRAY + "] " + e.getPlayer().getName() + " join the server.");
 	}
 	
 	@EventHandler
 	public void PlayerJoinMessage(PlayerQuitEvent e){
-		e.setQuitMessage(ChatColor.GRAY + "[" + ChatColor.DARK_GRAY + "-" + ChatColor.GRAY + "] " + e.getPlayer().getName() + " left the server.");
+		e.setQuitMessage(null);
+		//e.setQuitMessage(ChatColor.GRAY + "[" + ChatColor.DARK_GRAY + "-" + ChatColor.GRAY + "] " + e.getPlayer().getName() + " left the server.");
 	}
 	
 	/**
@@ -270,11 +237,11 @@ public class PlayerListener implements Listener{
 	 */
 	
 	@EventHandler
-	public void PlayerJoinTeamRefresh(PlayerJoinEvent e){
+	public void PlayerJoinSoTeamRefresh(PlayerJoinEvent e){
 		for(Player p : Bukkit.getOnlinePlayers()){
 			GTAPlayer gtap = GTA.getPlayerManager().getGTAplayer(p.getName());
 			if(gtap != null){
-				gtap.updateTeam();
+				gtap.addTeam(e.getPlayer());
 			}
 		}
 	}

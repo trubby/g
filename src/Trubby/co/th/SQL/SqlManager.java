@@ -11,7 +11,7 @@ import Trubby.co.th.GTA;
 public class SqlManager {
 
 	//public MySQL sql = new MySQL(GTA.instance, "localhost", "3306", "MC", "root", "");
-	public MySQL sql = new MySQL(GTA.instance, "localhost", "3306", "MC", "root", "0897449075");
+	public MySQL sql = new MySQL(GTA.instance, "localhost", "3306", "MC", "root", "46502");
 	public Connection connection = null;
 	
 	public void createTable(){

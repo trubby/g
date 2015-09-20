@@ -21,9 +21,11 @@ import Trubby.co.th.Utils.GMHook;
 import Trubby.co.th.chest.ChestListener;
 import Trubby.co.th.chest.ChestManager;
 import Trubby.co.th.chest.ItemDatabase;
+import Trubby.co.th.player.Anticheat;
 import Trubby.co.th.player.CarListener;
 import Trubby.co.th.player.PlayerListener;
 import Trubby.co.th.player.PlayerManager;
+import Trubby.co.th.rank.Ranking;
 import Trubby.co.th.wanted.WantedManager;
 
 import com.shampaggon.crackshot.CSUtility;
@@ -49,6 +51,8 @@ public class GTA extends JavaPlugin{
 		Bukkit.getPluginManager().registerEvents(new EntityListener(), this);
 		Bukkit.getPluginManager().registerEvents(new ChestListener(), this);
 		Bukkit.getPluginManager().registerEvents(new CarListener(), this);
+		Bukkit.getPluginManager().registerEvents(new Ranking(), this);
+		Bukkit.getPluginManager().registerEvents(new Anticheat(), this);
 		
 		gmhook = new GMHook(this);
 		
@@ -74,7 +78,7 @@ public class GTA extends JavaPlugin{
 			getPlayerManager().removePlayer(p);
 		}
 		
-		getChestManager().forceRestoreAllChest();
+		//getChestManager().forceRestoreAllChest();
 		
 		getSql().closeConnection();
 	}
@@ -104,6 +108,7 @@ public class GTA extends JavaPlugin{
 				}
 				
 				else if(args[0].equalsIgnoreCase("chestreset")){
+					//TODO remove
 					Player p = (Player) sender;
 					/*PigZombie pigzombie = (PigZombie) MobsUtil.spawnMob(p.getLocation(), EntityType.PIG_ZOMBIE, 1, 0.0, 0.0, 0.0);
 					pigzombie.setAngry(true);
@@ -115,7 +120,7 @@ public class GTA extends JavaPlugin{
 							if(b instanceof Chest){
 								Chest chest = (Chest) b;
 								chest.getInventory().clear();
-								getChestManager().breakChest(chest,20L);
+								//getChestManager().breakChest(chest,20L);
 								i++;
 							}
 						}

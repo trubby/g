@@ -5,10 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.Sound;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -28,7 +25,17 @@ public class ChestManager {
 	
 	public long chest_delay = 12000L;
 	
-	@SuppressWarnings("deprecation")
+	public void lootChest(Player p, Chest chest){
+		Inventory inv = Bukkit.createInventory(p, 27);
+		fillInventory(inv);
+		p.openInventory(inv);
+		GTA.getPlayerManager().getGTAplayer(p.getName()).lootedChest.put(chest.getLocation(), System.currentTimeMillis());
+		GTA.getPlayerManager().addMoney(p, ran.nextInt(5));
+		p.playSound(p.getLocation(), Sound.CHEST_OPEN, 1f, 1f);
+	}
+	
+	//OLD CHEST LOOT
+	/*@SuppressWarnings("deprecation")
 	public void breakChest(final Chest chest){
 		
 		final Location loc = chest.getLocation();
@@ -117,7 +124,7 @@ public class ChestManager {
 			
 			fillChest((Chest)block.getState());
 		}
-	}
+	}*/
 	
 	public void fillChest(Chest chest){
 		Inventory inv = chest.getInventory();
@@ -173,6 +180,72 @@ public class ChestManager {
 			for(GTAItem gtaitem : armourlist){
 				if(ran.nextInt(100) + 1 <= gtaitem.getChance()){
 					inv.addItem(gtaitem.getItem());
+					break;
+				}
+			}
+		}
+	}
+	
+	/*
+	 * NEW WAY OF CHESTLOOTING
+	 */
+	
+	public void fillInventory(Inventory inv){
+		
+		//MIST. fill
+		int i = 0;
+		for(GTAItem gtaitem : GTA.getChestManager().itemlist){
+			if(ran.nextInt(100) + 1 <= gtaitem.getChance()){
+				ItemStack is = gtaitem.getItem();
+				//random amount
+				if(is != null){
+				
+					if(gtaitem.getAmount() != 1){
+						is.setAmount(ran.nextInt(gtaitem.getAmount()) +1);
+					}
+					
+					if(is.getAmount() != 0){
+						//inv.addItem(is);
+						inv.setItem(ran.nextInt(27), is);
+					}
+				}
+			}
+			i++;
+		}
+		
+		//GUNS fill
+		/*int gun = 0;
+		for (int j = 0; j < 6; j++) {
+			if(gun > 0)break;
+			
+			GTAItem gtaitem = gunlist.get(ran.nextInt(gunlist.size()));
+			if(ran.nextInt(1000) + 1 <= gtaitem.getChance()){
+				inv.addItem(gtaitem.getItem());
+				gun++;
+			}
+		}*/
+		
+		int gun = 0;
+		if(ran.nextInt(4) == 1){ //15%
+			for (GTAItem gtaitem : gunlist) {
+				if(gun > 0)break;
+				
+				if(ran.nextInt(1000) + 1 <= gtaitem.getChance()){
+					//inv.addItem(gtaitem.getItem());
+					inv.setItem(ran.nextInt(27), gtaitem.getItem());
+					gun++;
+				}
+			}
+		}
+		
+		//System.out.println("Chest fill count : " + i + " / Has gun : " + gun);
+		
+		//Armour fill
+		if(ran.nextInt(3) == 1){ //18%
+			for(GTAItem gtaitem : armourlist){
+				if(ran.nextInt(100) + 1 <= gtaitem.getChance()){
+					//inv.addItem(gtaitem.getItem());
+					inv.setItem(ran.nextInt(27), gtaitem.getItem());
 					break;
 				}
 			}

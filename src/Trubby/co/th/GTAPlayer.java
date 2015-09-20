@@ -4,10 +4,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -19,6 +20,7 @@ import Trubby.co.th.Utils.ScoreboardUtils;
 public class GTAPlayer {
 
 	public String name;
+	public int id = 0;
 
 	public int kill = 0;
 	public int death = 0;
@@ -30,10 +32,14 @@ public class GTAPlayer {
 	public Objective ob;
 	public Objective ob_healthbar;
 	//public HashMap<String, Team> team_cache = new HashMap<String, Team>();
-	public ArrayList<Team> team_cache = new ArrayList<Team>();
+	public HashMap<String, Team> team_cache = new HashMap<String, Team>();
+	//public ArrayList<Team> team_cache = new ArrayList<Team>();
+	public HashMap<Location, Long> lootedChest = new HashMap<Location, Long>();
+	//prevent kill grinding
+	public HashMap<String, Long> kill_cache = new HashMap<String, Long>();
 	
 	
-	public GTAPlayer(Player p){
+	public GTAPlayer(Player p, int id){
 		name = p.getName();
 		
 		try {
@@ -68,9 +74,11 @@ public class GTAPlayer {
 		ob_healthbar.setDisplaySlot(DisplaySlot.BELOW_NAME);
 		ob_healthbar.setDisplayName(ChatColor.RED + "\u2764");
 		
-		updateTeam();
+		setupTeam();
 		
 		p.setScoreboard(sb);
+		
+		this.id = id;
 	}
 	
 	public void updateScoreboard(){
@@ -90,21 +98,21 @@ public class GTAPlayer {
 		sbu.update();
 		ob = sb.getObjective("GTA");
 		
-		updateTeam();
+		//updateTeam();
 	}
 	
-	public void updateTeam(){
-		if(team_cache.size() > 0){
+	public void setupTeam(){
+		/*if(team_cache.size() > 0){
 			for(Team t : team_cache){
 				t.unregister();
 			}
-		}
+		}*/
 		
-		team_cache.clear();
+		//team_cache.clear();
 		
-		int i = 1;
+		//int i = 1;
 		for(Player p : Bukkit.getOnlinePlayers()){
-			Team team = sb.registerNewTeam("show-" + i);
+			Team team = sb.registerNewTeam(p.getName());
 			//team.setDisplayName(""+i);
 			
 			if(GTA.getWantedManager().wantedlist.containsKey(p.getName())){
@@ -117,9 +125,29 @@ public class GTAPlayer {
 			
 			team.addPlayer(p);
 			
-			team_cache.add(team);
-			i++;
+			team_cache.put(p.getName(), team);
+			//i++;
 		}
+	}
+	
+	public void addTeam(Player p){
+		//Prevent save team name
+		if(team_cache.containsKey(p.getName())){
+			Team team = team_cache.get(p.getName());
+			team.unregister();
+		}
+		
+		Team team = sb.registerNewTeam(p.getName());
+		team.setPrefix(ChatColor.translateAlternateColorCodes('&', GTA.gmhook.getPrefix(p)));
+		team.setSuffix(ChatColor.translateAlternateColorCodes('&', GTA.gmhook.getSuffix(p)));
+		team.addPlayer(p);
+		
+		team_cache.put(p.getName(), team);
+	}
+	
+	public void removeTeam(Player p){
+		Team team = team_cache.get(p.getName());
+		team.unregister();
 	}
 	
 	public void save(){

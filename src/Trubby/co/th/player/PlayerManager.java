@@ -16,6 +16,7 @@ import Trubby.co.th.GTAPlayer;
 public class PlayerManager {
 
 	HashMap<String, GTAPlayer> playerlist = new HashMap<String, GTAPlayer>();
+	int count = 0;
 	
 	/**
 	 * 1 = 3 min.
@@ -36,7 +37,8 @@ public class PlayerManager {
 			} catch (Exception e) {
 			}
 		}
-		playerlist.put(p.getName(), new GTAPlayer(p));
+		playerlist.put(p.getName(), new GTAPlayer(p, count));
+		count++;
 	}
 	
 	public void removePlayer(Player p){
